@@ -25,6 +25,21 @@
 namespace rosbag2_transport
 {
 
+rcl_subscription_options_t
+rcl_subscription_get_unreliable_options()
+{
+  // !!! MAKE SURE THAT CHANGES TO THESE DEFAULTS ARE REFLECTED IN THE HEADER DOC STRING
+  static rcl_subscription_options_t default_options;/* = {
+    .ignore_local_publications = false,
+  };*/
+  // Must set the allocator and qos after because they are not a compile time constant.
+  default_options.ignore_local_publications = false;
+  default_options.qos = rmw_qos_profile_default;
+  default_options.qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  default_options.allocator = rcl_get_default_allocator();
+  return default_options;
+}
+
 GenericSubscription::GenericSubscription(
   std::shared_ptr<rcl_node_t> node_handle,
   const rosidl_message_type_support_t & ts,
@@ -34,7 +49,7 @@ GenericSubscription::GenericSubscription(
     node_handle,
     ts,
     topic_name,
-    rcl_subscription_get_default_options(),
+    rcl_subscription_get_unreliable_options(),
     true),
   default_allocator_(rcutils_get_default_allocator()),
   callback_(callback)
